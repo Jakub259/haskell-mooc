@@ -130,7 +130,7 @@ smallestDivisor n = smallestDivisor' n 2
 
 smallestDivisor' :: Integer -> Integer -> Integer
 smallestDivisor' n k
-  | k < 2 = error "fuck"
+  | k < 2 = error "your function doesn't need to work for inputs 0 and 1"
   | n `mod` k == 0 = k
   | otherwise = smallestDivisor' n (k + 1)
 
