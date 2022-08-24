@@ -204,8 +204,8 @@ freqs = foldr (Map.alter (Just . maybe 1 (+1))) Map.empty
 transfer :: String -> String -> Int -> Map.Map String Int -> Map.Map String Int
 transfer from to amount bank = case (Map.lookup to bank, Map.lookup from bank, amount > 0) of
     (Just toAcc, Just fromAcc, True) -> case fromAcc `compare` amount of 
-        GT -> Map.adjust (\x -> x - amount) from  (Map.adjust (amount+) to bank)
-        _ -> bank
+        LT -> bank
+        _ -> Map.adjust (\x -> x - amount) from  (Map.adjust (amount+) to bank)
     _ -> bank
 ------------------------------------------------------------------------------
 -- Ex 11: given an Array and two indices, swap the elements in the indices.
