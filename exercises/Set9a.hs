@@ -13,6 +13,7 @@ module Set9a where
 import Data.Char
 import Data.List
 import Data.Ord
+import Data.Either
 
 import Mooc.Todo
 
@@ -26,7 +27,11 @@ import Mooc.Todo
 -- Otherwise return "Ok."
 
 workload :: Int -> Int -> String
-workload nExercises hoursPerExercise = todo
+workload nExercises hoursPerExercise 
+  | hours < 10 = "Piece of cake!"
+  | hours > 100 = "Holy moly!"
+  | otherwise = "Ok."
+  where hours = nExercises * hoursPerExercise
 
 ------------------------------------------------------------------------------
 -- Ex 2: Implement the function echo that builds a string like this:
@@ -39,8 +44,8 @@ workload nExercises hoursPerExercise = todo
 -- Hint: use recursion
 
 echo :: String -> String
-echo = todo
-
+echo [] = []
+echo (x:xs) = (x:xs) ++ ", " ++ echo xs
 ------------------------------------------------------------------------------
 -- Ex 3: A country issues some banknotes. The banknotes have a serial
 -- number that can be used to check if the banknote is valid. For a
@@ -52,8 +57,10 @@ echo = todo
 -- are valid.
 
 countValid :: [String] -> Int
-countValid = todo
+countValid xs = sum $ map isValid xs
 
+isValid :: String -> Int
+isValid str = if str !! 2 == str !! 4 || str !! 3 == str !! 5 then 1 else 0
 ------------------------------------------------------------------------------
 -- Ex 4: Find the first element that repeats two or more times _in a
 -- row_ in the input list. Return a Nothing value if no element repeats.
@@ -64,8 +71,8 @@ countValid = todo
 --   repeated [1,2,1,2,3,3] ==> Just 3
 
 repeated :: Eq a => [a] -> Maybe a
-repeated = todo
-
+repeated (x1:x2:xs) = if x1 == x2 then Just x1 else repeated (x2:xs)
+repeated _ = Nothing
 ------------------------------------------------------------------------------
 -- Ex 5: A laboratory has been collecting measurements. Some of the
 -- measurements have failed, so the lab is using the type
@@ -86,7 +93,8 @@ repeated = todo
 --     ==> Left "no data"
 
 sumSuccess :: [Either String Int] -> Either String Int
-sumSuccess = todo
+sumSuccess xs = if null measurements then Left "no data" else Right (sum measurements)
+  where measurements = rights xs
 
 ------------------------------------------------------------------------------
 -- Ex 6: A combination lock can either be open or closed. The lock
@@ -108,30 +116,35 @@ sumSuccess = todo
 --   isOpen (open "0000" (lock (changeCode "0000" (open "1234" aLock)))) ==> True
 --   isOpen (open "1234" (lock (changeCode "0000" (open "1234" aLock)))) ==> False
 
-data Lock = LockUndefined
+data Lock = Closed String | Open String
   deriving Show
 
 -- aLock should be a locked lock with the code "1234"
 aLock :: Lock
-aLock = todo
+aLock = Closed "1234"
 
 -- isOpen returns True if the lock is open
 isOpen :: Lock -> Bool
-isOpen = todo
+isOpen (Open _) = True
+isOpen (Closed _) = False
+
 
 -- open tries to open the lock with the given code. If the code is
 -- wrong, nothing happens.
 open :: String -> Lock -> Lock
-open = todo
+open pass (Closed secret) = if pass == secret then Open secret else Closed secret
+open _ (Open secret) = Open secret
 
 -- lock closes a lock. If the lock is already closed, nothing happens.
 lock :: Lock -> Lock
-lock = todo
+lock (Open secret)= Closed secret
+lock (Closed secret) = Closed secret
 
 -- changeCode changes the code of an open lock. If the lock is closed,
 -- nothing happens.
 changeCode :: String -> Lock -> Lock
-changeCode = todo
+changeCode new_pass (Closed secret) = Closed secret
+changeCode new_pass (Open _) = Open new_pass
 
 ------------------------------------------------------------------------------
 -- Ex 7: Here's a type Text that just wraps a String. Implement an Eq
@@ -146,10 +159,14 @@ changeCode = todo
 --   Text "abc"  == Text "abcd"     ==> False
 --   Text "a bc" == Text "ab  d\n"  ==> False
 
-data Text = Text String
+newtype Text = Text String
   deriving Show
 
+instance Eq Text where
+  (Text a) == (Text b) = filter (not . isWhitespace) a == filter (not . isWhitespace) b
 
+isWhitespace :: Char -> Bool
+isWhitespace c = c == '\n' || c == ' '
 ------------------------------------------------------------------------------
 -- Ex 8: We can represent functions or mappings as lists of pairs.
 -- For example the list [("bob",13),("mary",8)] means that "bob" maps
@@ -182,7 +199,11 @@ data Text = Text String
 --       ==> [("a",1),("b",2)]
 
 compose :: (Eq a, Eq b) => [(a,b)] -> [(b,c)] -> [(a,c)]
-compose = todo
+compose [] _ = []
+compose (x : xs) b = case lookup (snd x) b of
+  Just y -> (fst x, y) : compose xs b
+  Nothing -> compose xs b
+
 
 ------------------------------------------------------------------------------
 -- Ex 9: Reorder a list using a list of indices.
@@ -225,5 +246,9 @@ identity n = [0 .. n - 1]
 multiply :: Permutation -> Permutation -> Permutation
 multiply p q = map (\i -> p !! (q !! i)) (identity (length p))
 
+zipList :: [a] -> [b] -> [(a, b)]
+zipList (x:xs) (y:ys) = (x, y) : zipList xs ys
+zipList _ _ = error "This case is unexpected"
+
 permute :: Permutation -> [a] -> [a]
-permute = todo
+permute xs ys = map snd $ sortBy (\x y -> compare (fst x) (fst y)) (zip xs ys)
